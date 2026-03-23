@@ -7,13 +7,13 @@ const API_BASE = import.meta.env.PROD
 
 const api = axios.create({
   baseURL: API_BASE,
-  timeout: 60000, // 60s timeout (embedding có thể lâu)
+  timeout: 90000, // 90s timeout (Render free tier cold start ~30s + embedding)
   headers: {
     'Content-Type': 'application/json'
   }
 });
 
-// Interceptor: tự động gắn JWT token vào mọi request
+// Request interceptor: tự động gắn JWT token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -21,6 +21,21 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// Response interceptor: xử lý lỗi 401 (token hết hạn)
+api.interceptors.response.use(
+  (res) => res,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      // Redirect to login nếu không phải đang ở login page
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 // ==================== Auth APIs ====================
 export const authApi = {
