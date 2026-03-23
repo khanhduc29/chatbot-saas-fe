@@ -1,8 +1,12 @@
 import axios from 'axios';
 
-// API client - tự động dùng proxy qua Vite dev server
+// API base URL: production dùng Render, dev dùng Vite proxy
+const API_BASE = import.meta.env.PROD
+  ? 'https://chatbot-saas-be.onrender.com/api'
+  : '/api';
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE,
   timeout: 60000, // 60s timeout (embedding có thể lâu)
   headers: {
     'Content-Type': 'application/json'
@@ -57,7 +61,7 @@ export const knowledgeApi = {
   },
   getAll: (botId) => api.get(`/bots/${botId}/knowledge`),
   getDetail: (botId, docId) => api.get(`/bots/${botId}/knowledge/${docId}`),
-  getDownloadUrl: (botId, docId) => `/api/bots/${botId}/knowledge/${docId}/download`,
+  getDownloadUrl: (botId, docId) => `${API_BASE}/bots/${botId}/knowledge/${docId}/download`,
   delete: (botId, docId) => api.delete(`/bots/${botId}/knowledge/${docId}`)
 };
 
