@@ -1,24 +1,28 @@
 import { useState, useEffect } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { botApi } from '../api/client';
 import { useAuth } from '../context/AuthContext';
-import { HiOutlineHome, HiOutlineCog6Tooth, HiOutlineArrowRightOnRectangle, HiOutlineUserGroup } from 'react-icons/hi2';
+import { HiOutlineHome, HiOutlineArrowRightOnRectangle, HiOutlineUserGroup, HiOutlineXMark } from 'react-icons/hi2';
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
   const [bots, setBots] = useState([]);
   const { user, logout, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const typeEmoji = { sales: '💰', support: '🛟', content: '✍️' };
 
   useEffect(() => {
     loadBots();
-
-    // Listen for bot updates
     const handler = () => loadBots();
     window.addEventListener('bot-updated', handler);
     return () => window.removeEventListener('bot-updated', handler);
   }, []);
+
+  // Auto-close sidebar on mobile khi navigate
+  useEffect(() => {
+    onClose?.();
+  }, [location.pathname]);
 
   const loadBots = async () => {
     try {
@@ -35,13 +39,16 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
       <div className="sidebar-header">
         <h2 className="sidebar-logo">🤖 ChatBot SaaS</h2>
+        <button className="sidebar-close-btn" onClick={onClose}>
+          <HiOutlineXMark />
+        </button>
       </div>
 
       <nav className="sidebar-nav">
-        <NavLink to="/" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+        <NavLink to="/" end className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
           <HiOutlineHome /> Dashboard
         </NavLink>
 
